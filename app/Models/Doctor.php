@@ -6,5 +6,20 @@ use Illuminate\Database\Eloquent\Model;
 
 class Doctor extends Model
 {
-    //
+    protected $fillable = [
+        'email',
+        'password',
+        'remember_token',
+        'full_name',
+        'phone',
+        'specialization',
+        'license_number',
+        'experience',
+        'clinic_address',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
 }

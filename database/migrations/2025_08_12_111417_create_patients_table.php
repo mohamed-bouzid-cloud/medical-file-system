@@ -12,15 +12,19 @@ return new class extends Migration
     public function up()
     {
         Schema::create('patients', function (Blueprint $table) {
-            $table->string('ipp')->unique();
-            $table->string('name');
-            $table->string('specialization');
+            $table->string('ipp')->primary(); // primary key
+            $table->string('full_name');
+            $table->string('email')->unique();
+            $table->string('password');
+            $table->date('dob')->nullable();
+            $table->string('gender')->nullable();
             $table->string('phone')->nullable();
-            $table->string('email')->nullable();
-            $table->text('bio')->nullable();
+            $table->string('address')->nullable();
+            $table->string('remember_token', 100)->nullable();
             $table->timestamps();
         });
     }
+    
 
     /**
      * Reverse the migrations.

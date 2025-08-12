@@ -13,20 +13,24 @@ return new class extends Migration
     {
         Schema::create('doctors', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('specialization');
+            $table->string('full_name');
+            $table->string('email')->unique();
+            $table->string('password');
+            $table->string('specialization')->nullable();
+            $table->string('license_number')->unique();
             $table->string('phone')->nullable();
-            $table->string('email')->nullable();
-            $table->text('bio')->nullable();
+            $table->string('address')->nullable();
+            $table->string('remember_token', 100)->nullable();
             $table->timestamps();
         });
     }
+    
 
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::dropIfExists('patients');
+        Schema::dropIfExists('doctors');
     }
 };

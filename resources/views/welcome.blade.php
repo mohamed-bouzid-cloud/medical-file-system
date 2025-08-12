@@ -88,9 +88,10 @@
       <a href="#" class="text-gray-300 hover:text-white transition-colors">About</a>
     </div>
     <div class="flex items-center space-x-4">
-      <a href="/login" class="px-4 py-2 text-sm font-medium text-primary-100 hover:text-white transition-colors">Sign In</a>
-      <a href="/register" class="px-6 py-2.5 rounded-full bg-gradient-to-r from-primary-600 to-secondary-500 text-sm font-semibold text-white shadow-lg hover:shadow-xl transition-all hover:opacity-90">Get Started</a>
-    </div>
+    <a href="/login/patient" class="px-4 py-2 text-sm font-medium text-primary-100 hover:text-white transition-colors">Sign In</a>
+  <a href="/signup/patient" class="px-6 py-2.5 rounded-full bg-gradient-to-r from-primary-600 to-secondary-500 text-sm font-semibold text-white shadow-lg hover:shadow-xl transition-all hover:opacity-90">Get Started</a>
+</div>
+
   </nav>
 
   <!-- Hero Section -->
@@ -105,7 +106,7 @@
           Your complete health history, encrypted and accessible anywhere. Join thousands of patients managing their care with confidence.
         </p>
         <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6">
-          <a href="/register" class="px-8 py-4 rounded-full bg-gradient-to-r from-primary-600 to-secondary-500 text-lg font-semibold text-white shadow-lg hover:shadow-xl transition-all hover:opacity-90 text-center">
+          <a href="/signup/patient" class="px-8 py-4 rounded-full bg-gradient-to-r from-primary-600 to-secondary-500 text-lg font-semibold text-white shadow-lg hover:shadow-xl transition-all hover:opacity-90 text-center">
             Start Free Trial
           </a>
           <a href="#" class="px-8 py-4 rounded-full border border-gray-700 text-lg font-medium text-gray-200 hover:bg-gray-800/30 transition-colors text-center flex items-center justify-center space-x-2">
@@ -254,9 +255,10 @@
         <h2 class="text-3xl md:text-4xl font-bold mb-6">Ready to take control of your health records?</h2>
         <p class="max-w-2xl mx-auto text-lg text-gray-400 mb-8">Join thousands of patients who trust MediVault with their most sensitive information.</p>
         <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6">
-          <a href="/register" class="px-8 py-4 rounded-full bg-gradient-to-r from-primary-600 to-secondary-500 text-lg font-semibold text-white shadow-lg hover:shadow-xl transition-all hover:opacity-90">
-            Get Started - It's Free
-          </a>
+        <a href="/signup/patient" class="px-8 py-4 rounded-full bg-gradient-to-r from-primary-600 to-secondary-500 text-lg font-semibold text-white shadow-lg hover:shadow-xl transition-all hover:opacity-90">
+    Get Started - It's Free
+</a>
+
           <a href="#" class="px-8 py-4 rounded-full border border-gray-700 text-lg font-medium text-gray-200 hover:bg-gray-800/30 transition-colors">
             Schedule a Demo
           </a>
