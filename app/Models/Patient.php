@@ -2,20 +2,23 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
-class Patient extends Model
+class Patient extends Authenticatable
 {
+    use Notifiable;
+
     // Tell Laravel the primary key is 'ipp' instead of 'id'
     protected $primaryKey = 'ipp';
 
-    // If 'ipp' is NOT auto-incrementing integer, set this to false
+    // 'ipp' is not auto-incrementing
     public $incrementing = false;
 
-    // If 'ipp' is a string (likely), set the key type
+    // 'ipp' is a string
     protected $keyType = 'string';
 
-    // Allow mass assignment on these fields
+    // Allow mass assignment
     protected $fillable = [
         'email',
         'password',
@@ -33,4 +36,5 @@ class Patient extends Model
         'password',
         'remember_token',
     ];
+  
 }

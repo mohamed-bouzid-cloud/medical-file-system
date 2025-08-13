@@ -15,17 +15,26 @@
       </div>
 
       {{-- LOGIN FORM --}}
+      <p>Debug: {{ $email }} / {{ $password }}</p>
+     
+
       @if ($action === 'login')
         <form wire:submit.prevent="login" class="space-y-6">
           <div class="relative">
             <input
               type="email"
-              wire:model.defer="email"
+              wire:model="email"
               placeholder=" "
               autocomplete="email"
               class="w-full px-5 py-4 bg-gray-800 border-2 rounded-xl focus:outline-none peer
                 @error('email') border-red-500 focus:ring-2 focus:ring-red-500 @else border-gray-700 focus:ring-2 focus:ring-blue-500/30 @enderror"
             />
+            @if($login_error)
+    <div class="p-4 bg-red-600 text-white rounded mb-4">
+        {{ $login_error }}
+    </div>
+@endif
+
             <label
               class="absolute left-4 top-1/2 -translate-y-1/2 px-1 bg-gray-800 text-gray-400 pointer-events-none
               peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:text-sm peer-focus:text-blue-400 transition-all duration-300"
@@ -40,7 +49,7 @@
           <div class="relative">
             <input
               type="password"
-              wire:model.defer="password"
+              wire:model="password"
               placeholder=" "
               autocomplete="current-password"
               class="w-full px-5 py-4 bg-gray-800 border-2 rounded-xl focus:outline-none peer
