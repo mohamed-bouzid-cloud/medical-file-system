@@ -2,39 +2,49 @@
 
 namespace App\Models;
 
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Model;
 
-class Patient extends Authenticatable
+class Patient extends Model
 {
-    use Notifiable;
+    protected $table = 'patients';
 
-    // Tell Laravel the primary key is 'ipp' instead of 'id'
-    protected $primaryKey = 'ipp';
+    protected $primaryKey = 'ipp'; // primary key is ipp
+    public $incrementing = false;   // not auto-increment
+    protected $keyType = 'string';  // if ipp is a string
 
-    // 'ipp' is not auto-incrementing
-    public $incrementing = false;
-
-    // 'ipp' is a string
-    protected $keyType = 'string';
-
-    // Allow mass assignment
     protected $fillable = [
-        'email',
-        'password',
-        'remember_token',
-        'full_name',
+        'ipp',
         'phone',
         'dob',
         'gender',
-        'ipp',
         'address',
+        'user_id'
     ];
 
-    // Hide sensitive fields
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
-  
+    // Link patient to the user
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id', 'id');
+    }
+
+    // Add relationships
+    public function conditions()
+    {
+        return $this->hasMany(Condition::class, 'ipp', 'ipp');
+    }
+
+    public function allergies()
+    {
+        return $this->hasMany(Allergy::class, 'ipp', 'ipp');
+    }
+
+    public function medications()
+    {
+        return $this->hasMany(Medication::class, 'ipp', 'ipp');
+    }
+
+    public function vitals()
+    {
+        return $this->hasOne(Vital::class, 'ipp', 'ipp');
+    }
 }

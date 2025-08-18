@@ -12,8 +12,7 @@ use App\Models\Medication;
 use App\Models\Condition;
 use Livewire\Attributes\Layout;
 
-// Tell Livewire to use the 'layouts.app' view as the main layout
-#[Layout('layouts.app')] 
+#[Layout('layouts.app')]
 class PatientDashboard extends Component
 {
     public $patient;
@@ -25,21 +24,28 @@ class PatientDashboard extends Component
 
     public function mount()
     {
-        $account = Auth::user(); // Logged-in PatientAccount
+        $account = Auth::user(); // Logged-in user
 
-        // Fetch the main patient record using IPP
-        $this->patient = Patient::where('ipp', $account->ipp)->first();
-
-        if ($this->patient) {
-            // Use the same IPP value to fetch related records
-            $ipp = $this->patient->ipp;
-
-            $this->allergies = Allergy::where('ipp', $ipp)->get();
-            $this->medications = Medication::where('ipp', $ipp)->get();
-            $this->appointments = Appointment::where('ipp', $ipp)->latest()->take(5)->get();
-            $this->labResults = LabResult::where('ipp', $ipp)->latest()->take(5)->get();
-            $this->conditions = Condition::where('ipp', $ipp)->get();
+        // Ensure user is a patient
+        if ($account->role !== 'patient') {
+            abort(403, 'Unauthorized access.');
         }
+
+        // Fetch the patient profile using user_id
+        $this->patient = Patient::where('user_id', $account->id)->first();
+
+        if (!$this->patient) {
+            abort(404, 'Patient profile not found.');
+        }
+
+        // Use patient IPP to fetch related records
+        $ipp = $this->patient->ipp;
+
+        $this->allergies = Allergy::where('ipp', $ipp)->get();
+        $this->medications = Medication::where('ipp', $ipp)->get();
+        $this->appointments = Appointment::where('ipp', $ipp)->latest()->take(5)->get();
+        $this->labResults = LabResult::where('ipp', $ipp)->latest()->take(5)->get();
+        $this->conditions = Condition::where('ipp', $ipp)->get();
     }
 
     public function render()
