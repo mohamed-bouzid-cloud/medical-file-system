@@ -29,6 +29,8 @@ class DoctorDashboard extends Component
     public $apiResult = null;
     public $dicomFiles = [];
     public $certificatePassword;
+    public $dicomDescription = ''; // ← add this
+
 
     private function service(): DoctorServices
     {
@@ -187,66 +189,58 @@ class DoctorDashboard extends Component
     }
 
     public function render()
-    {
-        $upcomingAppointments = $this->service()
-            ->getUpcomingAppointments(Auth::id())
-            ->map(function ($a) {
-                // Handle appointment data safely for both array and object
-                $id = is_array($a) ? ($a['id'] ?? null) : ($a->id ?? null);
-                $date = is_array($a) ? ($a['appointment_date'] ?? null) : ($a->appointment_date ?? null);
-                $time = is_array($a) ? ($a['appointment_time'] ?? null) : ($a->appointment_time ?? null);
+{
+    $upcomingAppointments = $this->service()
+        ->getUpcomingAppointments(Auth::id())
+        ->map(function ($appointment) {
+            return [
+                'id' => $appointment->id,
+                'patient_name' => $appointment->patient->name ?? '',
+                'date' => $appointment->appointment_date,
+                'time' => $appointment->appointment_time,
+            ];
+        })
+        ->toArray();
 
-                // Handle patient name safely for both array and object
-                if (is_array($a) && isset($a['patient']) && is_array($a['patient'])) {
-                    $patientName = $a['patient']['name'] ?? '';
-                } elseif (is_object($a) && isset($a->patient)) {
-                    $patientName = is_array($a->patient)
-                        ? ($a->patient['name'] ?? '')
-                        : ($a->patient->name ?? '');
-                } else {
-                    $patientName = '';
-                }
-
-                return [
-                    'id' => $id,
-                    'patient_name' => $patientName,
-                    'date' => $date,
-                    'time' => $time,
-                ];
-            })
-            ->toArray();
-
-        return view('livewire.doctor-dashboard', [
-            'filteredPatients' => $this->filteredPatients,
-            'selectedPatient' => $this->selectedPatient,
-            'patientData' => $this->patientData,
-            'fileIsBound' => $this->fileIsBound,
-            'apiResult' => $this->apiResult,
-            'upcomingAppointments' => $upcomingAppointments,
-        ]);
-    }
-
+    return view('livewire.doctor-dashboard', [
+        'filteredPatients' => $this->filteredPatients,
+        'selectedPatient' => $this->selectedPatient,
+        'patientData' => $this->patientData,
+        'fileIsBound' => $this->fileIsBound,
+        'apiResult' => $this->apiResult,
+        'upcomingAppointments' => $upcomingAppointments,
+    ]);
+}
     public function uploadDicom()
-    {
-        $this->validate([
-            'dicomFiles.*' => 'required|file|mimes:dcm,zip',
-            'certificatePassword' => 'required|string',
-        ]);
-
-        try {
-            $this->service()->uploadDicomFiles(
-                $this->dicomFiles,
-                $this->selectedPatient,
-                Auth::id(),
-                $this->certificatePassword
-            );
-
-            session()->flash('success', 'DICOM files uploaded and signed ✅');
-        } catch (\Exception $e) {
-            session()->flash('error', $e->getMessage());
-        } finally {
-            $this->dicomFiles = [];
-            $this->certificatePassword = '';
+        {
+            $this->validate([
+                'dicomFiles.*' => 'required|file|mimes:dcm,zip',
+                'certificatePassword' => 'required|string',
+            ]);
+        
+            try {
+                // Upload the files
+                $uploadedStudies = $this->service()->uploadDicomFiles(
+                    $this->dicomFiles,
+                    $this->selectedPatient,
+                    Auth::id(),
+                    $this->certificatePassword
+                );
+        
+                // ✅ Save description for each uploaded study
+                foreach ($uploadedStudies as $study) {
+                    $study->description = $this->dicomDescription; // save from input
+                    $study->save();
+                }
+        
+                session()->flash('success', 'DICOM files uploaded and signed ✅');
+            } catch (\Exception $e) {
+                session()->flash('error', $e->getMessage());
+            } finally {
+                $this->dicomFiles = [];
+                $this->certificatePassword = '';
+                $this->dicomDescription = ''; // reset input
+            }
         }
-    }
+        
 }

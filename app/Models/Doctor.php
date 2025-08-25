@@ -12,10 +12,10 @@ class Doctor extends Model
         'id',              // same as user.id
         'phone',
         'specialization',
-        'license_number',
         'experience',
         'clinic_address',
-        'user_id'
+        'user_id',
+        'certificate_password', // hashed password for certificate verification
     ];
 
     public $incrementing = false; // because id comes from users table
@@ -23,6 +23,7 @@ class Doctor extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'id', 'id');
+        return $this->belongsTo(User::class, 'user_id');
     }
+    
 }

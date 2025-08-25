@@ -552,7 +552,92 @@
                 </div>
             </div>
         </footer>
+<!-- DICOM Studies Card -->
+<!-- DICOM Studies Card -->
+<div class="space-y-6">
+    <div class="bg-dark-700 rounded-2xl shadow-md overflow-hidden smooth-transition card-hover mt-6">
+        <div class="bg-gradient-to-r from-indigo-600 to-indigo-800 p-4">
+            <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                <i class="fas fa-x-ray"></i> Imaging Studies
+            </h3>
+        </div>
+        <div class="p-4 space-y-4">
+            @forelse($dicomStudies as $study)
+                <div class="bg-dark-800 rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="text-white font-medium">Study #{{ $study->id }}</div>
+                        <div class="text-xs text-dark-400">{{ $study->created_at->format('Y-m-d H:i') }}</div>
+                    </div>
+
+                    <!-- File name -->
+                    <div class="text-sm text-dark-400 mb-2 truncate">{{ basename($study->file_path) }}</div>
+
+                    <!-- Description and signature -->
+                    <div class="flex flex-col gap-1 text-sm">
+                        <p class="text-white">
+                            Description: <span class="font-medium">{{ $study->display_description ?? 'No description' }}</span>
+                        </p>
+                        <p class="text-white">
+                            {{ $study->display_signed_by ?? 'Not signed yet' }}
+                            @if($study->signed_at)
+                                <span class="text-dark-400">on {{ \Carbon\Carbon::parse($study->signed_at)->format('Y-m-d H:i') }}</span>
+                            @endif
+                        </p>
+                    </div>
+
+                    <!-- View button -->
+                    <button 
+    class="mt-3 w-full text-sm px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 transition flex items-center justify-center gap-2"
+    data-url="{{ route('dicom.viewer', ['instanceID' => $study->orthanc_id]) }}"
+    @click="window.dispatchEvent(new CustomEvent('open-dicom-viewer', { detail: { url: $event.currentTarget.dataset.url } }))"
+>
+    <i class="fas fa-eye"></i> View Images
+</button>
+
+                </div>
+            @empty
+                <div class="text-sm text-dark-400">No imaging studies available.</div>
+            @endforelse
+        </div>
     </div>
+</div>
+
+<!-- AlpineJS modal for DICOM Viewer -->
+<div x-data="{ open: false, url: '' }"
+     x-on:open-dicom-viewer.window="open = true; url = $event.detail.url">
+    <template x-if="open">
+        <div class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+            <div class="relative w-full max-w-6xl max-h-full">
+                <iframe :src="url" class="w-full h-[80vh] rounded-xl shadow-lg"></iframe>
+                <button class="absolute top-4 right-4 text-white text-3xl font-bold" @click="open = false">×</button>
+            </div>
+        </div>
+    </template>
+</div>
+
+
+<script>
+document.addEventListener('livewire:load', () => {
+    Livewire.on('open-dicom-viewer', (payload) => {
+        console.log('Received payload:', payload); // 🔹 check this
+        if (payload?.url) {
+            window.dispatchEvent(new CustomEvent('open-dicom-viewer', { detail: { url: payload.url } }));
+        } else {
+            alert("❌ Viewer URL missing");
+        }
+    });
+
+    Livewire.on('dicom-error', (data) => {
+        alert("❌ DICOM Error: " + data.message);
+    });
+});
+</script>
+
+
+
+<!-- Include Cornerstone if needed -->
+<script src="https://unpkg.com/cornerstone-core/dist/cornerstone.js"></script>
+<script src="https://unpkg.com/cornerstone-wado-image-loader/dist/cornerstoneWADOImageLoader.js"></script>
 
     <script>
         // Simple animations and interactivity

@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\DicomStudy;
+use App\Models\DicomSignature;
 use App\Models\Patient;
 use App\Models\Assignment;
 use App\Models\Doctor;
@@ -11,6 +13,7 @@ use App\Models\Allergy;
 use App\Models\Appointment;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage; 
 
 class DoctorServices
 {
@@ -161,72 +164,127 @@ class DoctorServices
     // Fetch upcoming appointments
     public function getUpcomingAppointments($userId)
     {
-        Log::info('Fetching upcoming appointments for user ID: ' . $userId);
-
         $doctor = Doctor::where('user_id', $userId)->firstOrFail();
-        Log::info('Doctor found: ', $doctor->toArray());
-
-        $appointments = Appointment::where('doctor_id', $doctor->id)
+    
+        return Appointment::with('patient')
+            ->where('doctor_id', $doctor->id)
             ->whereDate('appointment_date', '>=', now()->toDateString())
             ->orderBy('appointment_date', 'asc')
-            ->get();
-
-        Log::info('Fetched appointments: ', $appointments->toArray());
-
-        return $appointments->map(function ($appointment) {
-            Log::info('Mapping appointment: ', $appointment->toArray());
-
-            return [
-                'id' => $appointment->id,
-                'appointment_date' => $appointment->appointment_date,
-                'appointment_time' => $appointment->appointment_time,
-                'patient' => $appointment->patient ? [
-                    'name' => $appointment->patient->name,
-                ] : null,
-            ];
-        });
+            ->get()
+            ->map(function ($appt) {
+                $dt = \Carbon\Carbon::parse($appt->appointment_date);
+                $appt->appointment_time = $dt->format('h:i A'); // add a virtual time property
+                $appt->appointment_date = $dt->format('M j, Y'); // format date nicely
+                return $appt;
+            });
     }
+    
 
-    public function uploadDicomFiles($files, $patientIpp, $userId, $certificatePassword)
-    {
-        Log::info('Uploading DICOM files for patient IPP: ' . $patientIpp);
-
+    
+    public function uploadDicomFiles(
+        array $files,
+        string $patientIpp,
+        int $userId,
+        string $certificatePassword,
+        ?string $description = null
+    ) {
+        // Get doctor
         $doctor = Doctor::where('user_id', $userId)->firstOrFail();
-        Log::info('Doctor found for DICOM upload: ', $doctor->toArray());
-
+    
+        // Verify certificate password
         if (!\Hash::check($certificatePassword, $doctor->certificate_password)) {
-            Log::error('Invalid certificate password for doctor ID: ' . $doctor->id);
             throw new \Exception('Invalid certificate password');
         }
-
+    
         $uploadedStudies = [];
-
+    
         foreach ($files as $file) {
-            Log::info('Processing file: ' . $file->getClientOriginalName());
-
-            $path = $file->store('dicom/' . $patientIpp, 'public');
-            Log::info('File stored at path: ' . $path);
-
+            $originalName = $file->getClientOriginalName();
+            $filename = uniqid('dicom_') . '_' . $originalName;
+            $path = "dicom/{$patientIpp}/{$filename}";
+    
+            // Store file locally
+            Storage::disk('local')->put($path, file_get_contents($file->getRealPath()));
+            Log::info("📂 Stored DICOM file: {$path}");
+    
+            // Attempt Orthanc upload
+            $orthancId = null;
+            try {
+                $dicomData = file_get_contents($file->getRealPath());
+    
+                $response = Http::withHeaders([
+                    'Content-Type' => 'application/dicom',
+                    'Accept'       => 'application/json',
+                ])->send('POST', 'http://localhost:8042/instances', [
+                    'body' => $dicomData,
+                ]);
+    
+                Log::info("📡 Orthanc upload response", [
+                    'status' => $response->status(),
+                    'body'   => $response->json(),
+                ]);
+    
+                if ($response->successful()) {
+                    $body = $response->json();
+    
+                    if (is_array($body) && isset($body['ID'])) {
+                        $orthancId = $body['ID'];
+                    } elseif (isset($body[0])) {
+                        $orthancId = $body[0];
+                    } else {
+                        Log::warning("⚠️ Orthanc response missing ID", [
+                            'file' => $filename,
+                            'body' => $body,
+                        ]);
+                    }
+                } else {
+                    Log::error("❌ Orthanc rejected file {$filename}", [
+                        'status' => $response->status(),
+                        'body'   => $response->body(),
+                    ]);
+                }
+            } catch (\Exception $e) {
+                Log::error("💥 Orthanc upload exception", [
+                    'file'  => $filename,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+    
+            // Save in DB always
             $study = DicomStudy::create([
-                'ipp' => $patientIpp,
-                'doctor_id' => $doctor->id,
-                'file_path' => $path,
+                'patient_ipp' => $patientIpp,
+                'doctor_id'   => $doctor->id,
+                'file_path'   => $path,
+                'description' => $description,
+                'study_uid'   => uniqid('study_'),
+                'orthanc_id'  => $orthancId, // may be null if Orthanc fails
+                'modality'    => 'OT',       // later: extract from DICOM
+                'study_date'  => now()->toDateString(),
             ]);
-            Log::info('DICOM study created: ', $study->toArray());
-
+    
+            // Create digital signature
             DicomSignature::create([
                 'dicom_study_id' => $study->id,
-                'doctor_id' => $doctor->id,
-                'signature_hash' => hash('sha256', $file->get() . $doctor->id . now()->timestamp),
-                'signed_at' => now(),
+                'doctor_id'      => $doctor->id,
+                'signature_hash' => hash('sha256', $path . $doctor->id . time()),
+                'signed_at'      => now(),
             ]);
-            Log::info('DICOM signature created for study ID: ' . $study->id);
-
+    
             $uploadedStudies[] = $study;
         }
-
-        Log::info('Uploaded studies: ', $uploadedStudies);
-
+    
+        Log::info("✅ Uploaded DICOM studies for patient {$patientIpp}", [
+            'count' => count($uploadedStudies),
+        ]);
+    
         return $uploadedStudies;
     }
+    
+    
+    
+
 }
+
+    
+    
+

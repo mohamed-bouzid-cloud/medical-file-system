@@ -12,5 +12,21 @@
         {{ $slot }}
     </div>
     @livewireScripts
+    
+    <script>
+        document.addEventListener('livewire:init', () => {
+            Livewire.on('open-dicom-viewer', (data) => {
+                console.log("DEBUG EVENT DATA:", data);
+                alert("✅ Opening DICOM Viewer: " + data.url);
+                window.open(data.url, '_blank');
+            });
+
+            Livewire.on('dicom-error', (data) => {
+                alert("❌ DICOM Error: " + data.message);
+            });
+        });
+    </script>
+
+
 </body>
 </html>

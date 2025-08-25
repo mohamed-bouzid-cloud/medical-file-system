@@ -282,150 +282,140 @@
                             </form>
                         </div>
                     </div>
+                    <tbody class="bg-gray-800/30 divide-y divide-gray-700/30">
+    <!-- Enhanced Appointments Tab -->
+<div x-show="tab==='appointments'" x-transition:enter="transition ease-out duration-300"
+     x-transition:enter-start="opacity-0 translate-y-2"
+     x-transition:enter-end="opacity-100 translate-y-0"
+     class="space-y-6 w-full">
 
-                    <!-- Enhanced Appointments Tab -->
-                    <div x-show="tab==='appointments'" x-transition:enter="transition ease-out duration-300" 
-                         x-transition:enter-start="opacity-0 translate-y-2" 
-                         x-transition:enter-end="opacity-100 translate-y-0" 
-                         class="bg-gray-800/50 p-6 rounded-2xl shadow-lg border border-gray-700/30 w-full">
-                        
-                        <div class="flex items-center justify-between mb-6">
-                            <h3 class="text-lg font-semibold text-blue-400 flex items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
-                                Upcoming Appointments
-                            </h3>
-                            <button class="px-4 py-2 rounded-lg bg-blue-600/80 hover:bg-blue-500 text-white transition-all flex items-center space-x-2 shadow-lg hover:shadow-blue-500/20 text-sm">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                </svg>
-                                <span>New Appointment</span>
-                            </button>
-                        </div>
+    <table class="min-w-full divide-y divide-gray-700/30">
+        <thead class="bg-gray-800/50">
+            <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Date & Time</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Purpose</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
+                <th class="px-6 py-3"></th>
+            </tr>
+        </thead>
+        <tbody class="bg-gray-800/30 divide-y divide-gray-700/30">
+            @foreach($upcomingAppointments as $appt)
+            <tr class="hover:bg-gray-700/30 transition-colors duration-150">
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm font-medium text-white">{{ $appt['date'] }}</div>
+                    <div class="text-xs text-gray-400">{{ $appt['time'] }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm text-gray-300">{{ $appt['purpose'] ?? 'General Checkup' }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    @php
+                        $statusColors = [
+                            'scheduled' => 'bg-blue-900/30 text-blue-400',
+                            'completed' => 'bg-green-900/30 text-green-400',
+                            'cancelled' => 'bg-red-900/30 text-red-400',
+                            'rescheduled' => 'bg-yellow-900/30 text-yellow-400'
+                        ];
+                        $statusColor = $statusColors[strtolower($appt['status'] ?? '')] ?? 'bg-gray-700 text-gray-300';
+                    @endphp
+                    <span class="px-2 py-1 text-xs rounded-full {{ $statusColor }}">{{ ucfirst($appt['status'] ?? 'Scheduled') }}</span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button class="text-blue-400 hover:text-blue-300 mr-3">View</button>
+                    <button class="text-gray-400 hover:text-gray-300">Edit</button>
+                </td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
+</div>
 
-                        @if(empty($upcomingAppointments))
-                            <div class="text-center py-8">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-500/70 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                <h4 class="text-gray-400 font-medium mb-1">No upcoming appointments</h4>
-                                <p class="text-gray-500 text-sm">Schedule a new appointment to get started</p>
-                            </div>
-                        @else
-                            <div class="overflow-hidden rounded-xl border border-gray-700/30">
-                                <table class="min-w-full divide-y divide-gray-700/30">
-                                    <thead class="bg-gray-700/50">
-                                        <tr>
-                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Date & Time</th>
-                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Purpose</th>
-                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
-                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="bg-gray-800/30 divide-y divide-gray-700/30">
-                                        @foreach($upcomingAppointments as $appt)
-                                        <tr class="hover:bg-gray-700/30 transition-colors duration-150">
-                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                <div class="text-sm font-medium text-white">{{ $appt->appointment_date }}</div>
-                                                <div class="text-xs text-gray-400">{{ $appt->appointment_time }}</div>
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                <div class="text-sm text-gray-300">{{ $appt->purpose ?? 'General Checkup' }}</div>
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                @php
-                                                    $statusColors = [
-                                                        'scheduled' => 'bg-blue-900/30 text-blue-400',
-                                                        'completed' => 'bg-green-900/30 text-green-400',
-                                                        'cancelled' => 'bg-red-900/30 text-red-400',
-                                                        'rescheduled' => 'bg-yellow-900/30 text-yellow-400'
-                                                    ];
-                                                    $statusColor = $statusColors[strtolower($appt->status)] ?? 'bg-gray-700 text-gray-300';
-                                                @endphp
-                                                <span class="px-2 py-1 text-xs rounded-full {{ $statusColor }}">{{ ucfirst($appt->status) }}</span>
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                <button class="text-blue-400 hover:text-blue-300 mr-3">View</button>
-                                                <button class="text-gray-400 hover:text-gray-300">Edit</button>
-                                            </td>
-                                        </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        @endif
-                    </div>
+
 
                     <!-- Enhanced DICOM Upload Tab -->
-                    <div x-show="tab==='dicom'" x-transition:enter="transition ease-out duration-300" 
-                         x-transition:enter-start="opacity-0 translate-y-2" 
-                         x-transition:enter-end="opacity-100 translate-y-0" 
-                         class="bg-gray-800/50 p-6 rounded-2xl shadow-lg border border-gray-700/30 w-full">
-                        
-                        <div class="flex items-center justify-between mb-6">
-                            <div>
-                                <h3 class="text-lg font-semibold text-green-400 flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                                    </svg>
-                                    DICOM Files Upload
-                                </h3>
-                                <p class="text-sm text-gray-400 mt-1">Upload medical imaging files in DICOM format</p>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <span class="text-xs px-2 py-1 rounded-full bg-gray-800/50 text-gray-400 border border-gray-700/50">Max 10 files</span>
-                                <span class="text-xs px-2 py-1 rounded-full bg-gray-800/50 text-gray-400 border border-gray-700/50">Max 50MB each</span>
-                            </div>
-                        </div>
+<div x-show="tab==='dicom'" x-transition:enter="transition ease-out duration-300" 
+     x-transition:enter-start="opacity-0 translate-y-2" 
+     x-transition:enter-end="opacity-100 translate-y-0" 
+     class="bg-gray-800/50 p-6 rounded-2xl shadow-lg border border-gray-700/30 w-full">
+    
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h3 class="text-lg font-semibold text-green-400 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                DICOM Files Upload
+            </h3>
+            <p class="text-sm text-gray-400 mt-1">Upload medical imaging files in DICOM format</p>
+        </div>
+        <div class="flex items-center space-x-2">
+            <span class="text-xs px-2 py-1 rounded-full bg-gray-800/50 text-gray-400 border border-gray-700/50">Max 10 files</span>
+            <span class="text-xs px-2 py-1 rounded-full bg-gray-800/50 text-gray-400 border border-gray-700/50">Max 50MB each</span>
+        </div>
+    </div>
 
-                        <form wire:submit.prevent="uploadDicom" class="space-y-6 w-full">
-                            <!-- Drag and Drop Zone -->
-                            <div class="border-2 border-dashed border-gray-700/50 rounded-2xl p-8 text-center transition-all duration-300 hover:border-green-400/50 hover:bg-gray-700/20 group">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-500 group-hover:text-green-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                                </svg>
-                                <h4 class="text-lg font-medium text-gray-300 mb-1">Drag and drop DICOM files here</h4>
-                                <p class="text-sm text-gray-500 mb-4">or</p>
-                                <label class="px-6 py-3 rounded-xl bg-gray-700/50 hover:bg-gray-700 text-white font-medium transition-all duration-200 shadow cursor-pointer border border-gray-700/50 hover:border-green-400/50 inline-flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                                    </svg>
-                                    Select Files
-                                    <input type="file" wire:model="dicomFiles" multiple class="hidden" accept=".dcm,.dicom">
-                                </label>
-                            </div>
+    <form wire:submit.prevent="uploadDicom" class="space-y-6 w-full">
+        <!-- Drag and Drop Zone -->
+        <div class="border-2 border-dashed border-gray-700/50 rounded-2xl p-8 text-center transition-all duration-300 hover:border-green-400/50 hover:bg-gray-700/20 group">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-500 group-hover:text-green-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            </svg>
+            <h4 class="text-lg font-medium text-gray-300 mb-1">Drag and drop DICOM files here</h4>
+            <p class="text-sm text-gray-500 mb-4">or</p>
+            <label class="px-6 py-3 rounded-xl bg-gray-700/50 hover:bg-gray-700 text-white font-medium transition-all duration-200 shadow cursor-pointer border border-gray-700/50 hover:border-green-400/50 inline-flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                Select Files
+                <input type="file" wire:model="dicomFiles" multiple class="hidden" accept=".dcm,.dicom">
+            </label>
+        </div>
 
-                            <!-- Certificate Password -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-400">Certificate Password</label>
-                                <div class="relative">
-                                    <input type="password" 
-                                           wire:model="certificatePassword" 
-                                           placeholder="Enter your certificate password" 
-                                           class="block w-full px-4 py-3 rounded-xl bg-gray-700/80 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-400/50 focus:bg-gray-700 transition-all duration-200 shadow-sm border border-gray-700/50 hover:border-green-400/50 pr-10">
-                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                        </svg>
-                                    </div>
-                                </div>
-                                <p class="text-xs text-gray-500">Required for DICOM file signing</p>
-                            </div>
+        <!-- Description -->
+        <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-400">Study Description</label>
+            <input type="text" 
+                   wire:model="dicomDescription" 
+                   placeholder="Enter a description for this study" 
+                   class="block w-full px-4 py-3 rounded-xl bg-gray-700/80 text-white placeholder-gray-500 
+                          focus:outline-none focus:ring-2 focus:ring-green-400/50 focus:bg-gray-700 
+                          transition-all duration-200 shadow-sm border border-gray-700/50 hover:border-green-400/50">
+            <p class="text-xs text-gray-500">Optional: add notes about this imaging study</p>
+        </div>
 
-                            <!-- Upload Button -->
-                            <button type="submit" 
-                                    class="w-full px-6 py-4 rounded-xl bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white font-semibold transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-[1.01] flex items-center justify-center space-x-3">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
-                                </svg>
-                                <span>Upload & Sign DICOM Files</span>
-                            </button>
-                        </form>
-                    </div>
+        <!-- Certificate Password -->
+        <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-400">Certificate Password</label>
+            <div class="relative">
+                <input type="password" 
+                       wire:model="certificatePassword" 
+                       placeholder="Enter your certificate password" 
+                       class="block w-full px-4 py-3 rounded-xl bg-gray-700/80 text-white placeholder-gray-500 
+                              focus:outline-none focus:ring-2 focus:ring-green-400/50 focus:bg-gray-700 
+                              transition-all duration-200 shadow-sm border border-gray-700/50 hover:border-green-400/50 pr-10">
+                <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
                 </div>
-
             </div>
+            <p class="text-xs text-gray-500">Required for DICOM file signing</p>
+        </div>
+
+        <!-- Upload Button -->
+        <button type="submit" 
+                class="w-full px-6 py-4 rounded-xl bg-gradient-to-r from-green-600 to-green-700 
+                       hover:from-green-500 hover:to-green-600 text-white font-semibold 
+                       transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-[1.01] 
+                       flex items-center justify-center space-x-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+            </svg>
+            <span>Upload & Sign DICOM Files</span>
+        </button>
+    </form>
+</div>
+
         @else
             <div class="text-center py-20 w-full animate-fade-in">
                 <div class="max-w-md mx-auto">

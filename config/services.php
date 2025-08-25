@@ -37,5 +37,11 @@ return [
 'gemini' => [
     'key' => env('GEMINI_API_KEY'),
 ],
+'orthanc' => [
+    'url' => env('ORTHANC_URL', 'http://localhost:8042'),
+    'user' => env('ORTHANC_USER', 'orthanc'),
+    'pass' => env('ORTHANC_PASS', 'orthanc'),
+],
+
 
 ];
